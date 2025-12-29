@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <AssemblyName>d0x2a.EmbeddedSsh.Tests</AssemblyName>
-    <RootNamespace>com.d0x2a.EmbeddedSsh.Tests</RootNamespace>
+    <RootNamespace>d0x2a.EmbeddedSsh.Tests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
