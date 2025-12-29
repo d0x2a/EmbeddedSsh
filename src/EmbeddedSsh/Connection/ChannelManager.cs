@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
 
-namespace com.d0x2a.EmbeddedSsh.Connection;
+namespace d0x2a.EmbeddedSsh.Connection;
 
 /// <summary>
 /// Manages SSH channels within a connection.

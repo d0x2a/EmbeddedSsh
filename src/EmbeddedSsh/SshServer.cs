@@ -2,7 +2,7 @@ using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
 
-namespace com.d0x2a.EmbeddedSsh;
+namespace d0x2a.EmbeddedSsh;
 
 /// <summary>
 /// SSH server that accepts incoming connections.

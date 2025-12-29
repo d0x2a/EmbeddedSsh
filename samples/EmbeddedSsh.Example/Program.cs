@@ -1,9 +1,9 @@
 using System.Net;
 using System.Text;
-using com.d0x2a.EmbeddedSsh;
-using com.d0x2a.EmbeddedSsh.Auth;
-using com.d0x2a.EmbeddedSsh.Connection;
-using com.d0x2a.EmbeddedSsh.HostKeys;
+using d0x2a.EmbeddedSsh;
+using d0x2a.EmbeddedSsh.Auth;
+using d0x2a.EmbeddedSsh.Connection;
+using d0x2a.EmbeddedSsh.HostKeys;
 
 const int Port = 2222;
 const string HostKeyPath = "host_key";

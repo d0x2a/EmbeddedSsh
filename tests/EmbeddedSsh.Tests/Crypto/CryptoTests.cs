@@ -1,6 +1,6 @@
-using com.d0x2a.EmbeddedSsh.Crypto;
+using d0x2a.EmbeddedSsh.Crypto;
 
-namespace com.d0x2a.EmbeddedSsh.Tests.Crypto;
+namespace d0x2a.EmbeddedSsh.Tests.Crypto;
 
 public class CryptoTests
 {

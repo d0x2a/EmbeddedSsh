@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 
-namespace com.d0x2a.EmbeddedSsh.Protocol.Messages;
+namespace d0x2a.EmbeddedSsh.Protocol.Messages;
 
 /// <summary>
 /// SSH_MSG_DISCONNECT (RFC 4253 §11.1)

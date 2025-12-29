@@ -1,7 +1,7 @@
 using System.Buffers.Binary;
 using System.Text;
 
-namespace com.d0x2a.EmbeddedSsh.Protocol;
+namespace d0x2a.EmbeddedSsh.Protocol;
 
 /// <summary>
 /// Binary writer for SSH protocol types (RFC 4251 §5).

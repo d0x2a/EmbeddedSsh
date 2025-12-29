@@ -1,9 +1,9 @@
 using System.Threading.Channels;
-using com.d0x2a.EmbeddedSsh.Protocol;
-using com.d0x2a.EmbeddedSsh.Protocol.Messages;
-using com.d0x2a.EmbeddedSsh.Transport;
+using d0x2a.EmbeddedSsh.Protocol;
+using d0x2a.EmbeddedSsh.Protocol.Messages;
+using d0x2a.EmbeddedSsh.Transport;
 
-namespace com.d0x2a.EmbeddedSsh.Connection;
+namespace d0x2a.EmbeddedSsh.Connection;
 
 /// <summary>
 /// SSH connection layer (RFC 4254).

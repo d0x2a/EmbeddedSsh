@@ -1,9 +1,9 @@
 using System.Security.Cryptography;
 using System.Text;
-using com.d0x2a.EmbeddedSsh.Crypto;
-using com.d0x2a.EmbeddedSsh.Protocol;
+using d0x2a.EmbeddedSsh.Crypto;
+using d0x2a.EmbeddedSsh.Protocol;
 
-namespace com.d0x2a.EmbeddedSsh.Auth;
+namespace d0x2a.EmbeddedSsh.Auth;
 
 /// <summary>
 /// Authenticator using authorized_keys files (OpenSSH format).

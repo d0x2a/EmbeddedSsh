@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 
-namespace com.d0x2a.EmbeddedSsh.Crypto;
+namespace d0x2a.EmbeddedSsh.Crypto;
 
 /// <summary>
 /// X25519 Elliptic Curve Diffie-Hellman key exchange (RFC 7748).

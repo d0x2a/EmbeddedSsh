@@ -1,4 +1,4 @@
-namespace com.d0x2a.EmbeddedSsh.Auth;
+namespace d0x2a.EmbeddedSsh.Auth;
 
 /// <summary>
 /// Simple password authenticator using a callback function.

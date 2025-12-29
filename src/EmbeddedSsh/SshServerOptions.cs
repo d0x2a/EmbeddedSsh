@@ -1,7 +1,7 @@
-using com.d0x2a.EmbeddedSsh.Auth;
-using com.d0x2a.EmbeddedSsh.HostKeys;
+using d0x2a.EmbeddedSsh.Auth;
+using d0x2a.EmbeddedSsh.HostKeys;
 
-namespace com.d0x2a.EmbeddedSsh;
+namespace d0x2a.EmbeddedSsh;
 
 /// <summary>
 /// Configuration options for the SSH server.

@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 
-namespace com.d0x2a.EmbeddedSsh.Crypto;
+namespace d0x2a.EmbeddedSsh.Crypto;
 
 /// <summary>
 /// Ed25519 digital signature algorithm (RFC 8032).

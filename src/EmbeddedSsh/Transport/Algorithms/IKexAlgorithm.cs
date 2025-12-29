@@ -1,4 +1,4 @@
-namespace com.d0x2a.EmbeddedSsh.Transport.Algorithms;
+namespace d0x2a.EmbeddedSsh.Transport.Algorithms;
 
 /// <summary>
 /// Interface for SSH key exchange algorithms.

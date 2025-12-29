@@ -1,7 +1,7 @@
 using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
 
-namespace com.d0x2a.EmbeddedSsh.Crypto;
+namespace d0x2a.EmbeddedSsh.Crypto;
 
 /// <summary>
 /// ChaCha20 stream cipher implementation (RFC 7539).

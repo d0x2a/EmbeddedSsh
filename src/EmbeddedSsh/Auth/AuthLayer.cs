@@ -1,12 +1,12 @@
 using System.Buffers;
 using System.Buffers.Binary;
 using System.Security.Cryptography;
-using com.d0x2a.EmbeddedSsh.Crypto;
-using com.d0x2a.EmbeddedSsh.Protocol;
-using com.d0x2a.EmbeddedSsh.Protocol.Messages;
-using com.d0x2a.EmbeddedSsh.Transport;
+using d0x2a.EmbeddedSsh.Crypto;
+using d0x2a.EmbeddedSsh.Protocol;
+using d0x2a.EmbeddedSsh.Protocol.Messages;
+using d0x2a.EmbeddedSsh.Transport;
 
-namespace com.d0x2a.EmbeddedSsh.Auth;
+namespace d0x2a.EmbeddedSsh.Auth;
 
 /// <summary>
 /// SSH authentication layer (RFC 4252).

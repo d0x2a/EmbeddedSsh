@@ -1,7 +1,7 @@
 using System.Buffers.Binary;
 using System.Security.Cryptography;
 
-namespace com.d0x2a.EmbeddedSsh.Transport.Algorithms;
+namespace d0x2a.EmbeddedSsh.Transport.Algorithms;
 
 /// <summary>
 /// AES-256-GCM AEAD cipher for SSH (aes256-gcm@openssh.com).

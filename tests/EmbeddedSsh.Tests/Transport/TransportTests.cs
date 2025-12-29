@@ -1,9 +1,9 @@
 using System.Buffers.Binary;
-using com.d0x2a.EmbeddedSsh.Crypto;
-using com.d0x2a.EmbeddedSsh.Transport;
-using com.d0x2a.EmbeddedSsh.Transport.Algorithms;
+using d0x2a.EmbeddedSsh.Crypto;
+using d0x2a.EmbeddedSsh.Transport;
+using d0x2a.EmbeddedSsh.Transport.Algorithms;
 
-namespace com.d0x2a.EmbeddedSsh.Tests.Transport;
+namespace d0x2a.EmbeddedSsh.Tests.Transport;
 
 public class TransportTests
 {

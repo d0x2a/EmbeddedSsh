@@ -1,8 +1,8 @@
 using System.Security.Cryptography;
-using com.d0x2a.EmbeddedSsh.Crypto;
-using com.d0x2a.EmbeddedSsh.Protocol;
+using d0x2a.EmbeddedSsh.Crypto;
+using d0x2a.EmbeddedSsh.Protocol;
 
-namespace com.d0x2a.EmbeddedSsh.HostKeys;
+namespace d0x2a.EmbeddedSsh.HostKeys;
 
 /// <summary>
 /// Ed25519 host key implementation.

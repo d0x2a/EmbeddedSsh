@@ -1,4 +1,4 @@
-namespace com.d0x2a.EmbeddedSsh.HostKeys;
+namespace d0x2a.EmbeddedSsh.HostKeys;
 
 /// <summary>
 /// Interface for SSH host keys.

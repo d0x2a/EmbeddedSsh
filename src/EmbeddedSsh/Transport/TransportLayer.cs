@@ -3,11 +3,11 @@ using System.Buffers.Binary;
 using System.IO.Pipelines;
 using System.Security.Cryptography;
 using System.Text;
-using com.d0x2a.EmbeddedSsh.Protocol;
-using com.d0x2a.EmbeddedSsh.Protocol.Messages;
-using com.d0x2a.EmbeddedSsh.Transport.Algorithms;
+using d0x2a.EmbeddedSsh.Protocol;
+using d0x2a.EmbeddedSsh.Protocol.Messages;
+using d0x2a.EmbeddedSsh.Transport.Algorithms;
 
-namespace com.d0x2a.EmbeddedSsh.Transport;
+namespace d0x2a.EmbeddedSsh.Transport;
 
 /// <summary>
 /// SSH transport layer handling version exchange, packet framing, and encryption.

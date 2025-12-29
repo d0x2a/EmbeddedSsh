@@ -1,8 +1,8 @@
 using System.Buffers.Binary;
 using System.Security.Cryptography;
-using com.d0x2a.EmbeddedSsh.Crypto;
+using d0x2a.EmbeddedSsh.Crypto;
 
-namespace com.d0x2a.EmbeddedSsh.Transport.Algorithms;
+namespace d0x2a.EmbeddedSsh.Transport.Algorithms;
 
 /// <summary>
 /// ChaCha20-Poly1305 AEAD cipher for SSH (chacha20-poly1305@openssh.com).

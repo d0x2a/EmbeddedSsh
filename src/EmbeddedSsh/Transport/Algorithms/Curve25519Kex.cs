@@ -1,8 +1,8 @@
 using System.Security.Cryptography;
-using com.d0x2a.EmbeddedSsh.Crypto;
-using com.d0x2a.EmbeddedSsh.Protocol;
+using d0x2a.EmbeddedSsh.Crypto;
+using d0x2a.EmbeddedSsh.Protocol;
 
-namespace com.d0x2a.EmbeddedSsh.Transport.Algorithms;
+namespace d0x2a.EmbeddedSsh.Transport.Algorithms;
 
 /// <summary>
 /// Curve25519 key exchange using SHA-256 (curve25519-sha256 / curve25519-sha256@libssh.org).

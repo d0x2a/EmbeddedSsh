@@ -1,7 +1,7 @@
-using com.d0x2a.EmbeddedSsh.Protocol;
-using com.d0x2a.EmbeddedSsh.Protocol.Messages;
+using d0x2a.EmbeddedSsh.Protocol;
+using d0x2a.EmbeddedSsh.Protocol.Messages;
 
-namespace com.d0x2a.EmbeddedSsh.Tests.Protocol;
+namespace d0x2a.EmbeddedSsh.Tests.Protocol;
 
 public class MessageTests
 {

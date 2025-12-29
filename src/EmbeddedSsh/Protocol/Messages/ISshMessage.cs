@@ -1,4 +1,4 @@
-namespace com.d0x2a.EmbeddedSsh.Protocol.Messages;
+namespace d0x2a.EmbeddedSsh.Protocol.Messages;
 
 /// <summary>
 /// Base interface for all SSH messages.

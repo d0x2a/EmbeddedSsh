@@ -1,6 +1,6 @@
-using com.d0x2a.EmbeddedSsh.Protocol.Messages;
+using d0x2a.EmbeddedSsh.Protocol.Messages;
 
-namespace com.d0x2a.EmbeddedSsh.Protocol;
+namespace d0x2a.EmbeddedSsh.Protocol;
 
 /// <summary>
 /// Parses SSH messages from binary payloads.

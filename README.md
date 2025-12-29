@@ -32,9 +32,9 @@ dotnet add package d0x2a.EmbeddedSsh
 
 ```csharp
 using System.Net;
-using com.d0x2a.EmbeddedSsh;
-using com.d0x2a.EmbeddedSsh.Auth;
-using com.d0x2a.EmbeddedSsh.HostKeys;
+using d0x2a.EmbeddedSsh;
+using d0x2a.EmbeddedSsh.Auth;
+using d0x2a.EmbeddedSsh.HostKeys;
 
 // Generate or load host key
 var hostKey = Ed25519HostKey.Generate();

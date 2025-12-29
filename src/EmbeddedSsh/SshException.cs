@@ -1,4 +1,4 @@
-namespace com.d0x2a.EmbeddedSsh;
+namespace d0x2a.EmbeddedSsh;
 
 /// <summary>
 /// Base exception for all SSH-related errors.

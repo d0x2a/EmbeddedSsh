@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
-using com.d0x2a.EmbeddedSsh.Protocol;
+using d0x2a.EmbeddedSsh.Protocol;
 
-namespace com.d0x2a.EmbeddedSsh.Transport;
+namespace d0x2a.EmbeddedSsh.Transport;
 
 /// <summary>
 /// SSH key derivation functions (RFC 4253 Section 7.2).

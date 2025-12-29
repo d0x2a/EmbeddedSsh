@@ -1,4 +1,4 @@
-namespace com.d0x2a.EmbeddedSsh.Protocol;
+namespace d0x2a.EmbeddedSsh.Protocol;
 
 /// <summary>
 /// SSH message type numbers (RFC 4250).
