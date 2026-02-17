@@ -119,12 +119,11 @@ public sealed class SshChannel : IAsyncDisposable
     /// </summary>
     public async ValueTask<ReadOnlyMemory<byte>> ReadAsync(CancellationToken cancellationToken = default)
     {
-        if (_eofReceived && !_dataChannel.Reader.TryRead(out _))
-            return ReadOnlyMemory<byte>.Empty;
-
         try
         {
-            return await _dataChannel.Reader.ReadAsync(cancellationToken).ConfigureAwait(false);
+            var data = await _dataChannel.Reader.ReadAsync(cancellationToken).ConfigureAwait(false);
+            await AdjustLocalWindowAsync((uint)data.Length, cancellationToken).ConfigureAwait(false);
+            return data;
         }
         catch (ChannelClosedException)
         {
