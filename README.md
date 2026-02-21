@@ -8,6 +8,7 @@ A minimal, embeddable SSH-2 server library for .NET 10.0 following RFC 4251-4254
 - **Pure managed code** - No native libraries or P/Invoke
 - **RFC compliant** - Implements SSH-2 protocol (RFC 4251-4254)
 - **Modern cryptography**:
+  - Post-quantum hybrid key exchange (mlkem768x25519-sha256)
   - ChaCha20-Poly1305 and AES-256-GCM ciphers
   - Curve25519 key exchange
   - Ed25519 host keys
@@ -17,7 +18,7 @@ A minimal, embeddable SSH-2 server library for .NET 10.0 following RFC 4251-4254
 
 | Type | Algorithms |
 |------|------------|
-| Key Exchange | curve25519-sha256, curve25519-sha256@libssh.org |
+| Key Exchange | mlkem768x25519-sha256, curve25519-sha256, curve25519-sha256@libssh.org |
 | Host Key | ssh-ed25519 |
 | Cipher | chacha20-poly1305@openssh.com, aes256-gcm@openssh.com |
 | Authentication | publickey (ssh-ed25519, ssh-rsa, rsa-sha2-256, rsa-sha2-512), password |
