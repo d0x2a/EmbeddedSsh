@@ -20,21 +20,16 @@ public sealed class Curve25519Kex : IKexAlgorithm
     /// </summary>
     public const string AlternativeName = "curve25519-sha256@libssh.org";
 
-    /// <summary>
-    /// Key size for X25519.
-    /// </summary>
-    private const int KeySize = 32;
+    public SharedSecretEncoding SharedSecretEncoding => SharedSecretEncoding.Mpint;
 
-    public (byte[] PrivateKey, byte[] PublicKey) GenerateKeyPair()
+    public KexExchangeResult ServerExchange(ReadOnlySpan<byte> clientEphemeral)
     {
-        return X25519.GenerateKeyPair();
-    }
+        if (clientEphemeral.Length != X25519.KeySize)
+            throw new ArgumentException($"Client ephemeral key must be {X25519.KeySize} bytes", nameof(clientEphemeral));
 
-    public byte[] ComputeSharedSecret(ReadOnlySpan<byte> privateKey, ReadOnlySpan<byte> peerPublicKey)
-    {
-        // SSH implementations use X25519 output directly without byte reversal
-        // for exchange hash computation (de facto standard for interoperability)
-        return X25519.ComputeSharedSecret(privateKey, peerPublicKey);
+        var (serverPrivate, serverPublic) = X25519.GenerateKeyPair();
+        var sharedSecret = X25519.ComputeSharedSecret(serverPrivate, clientEphemeral);
+        return new KexExchangeResult(serverPublic, sharedSecret);
     }
 
     /// <summary>
@@ -125,7 +120,7 @@ public sealed class Curve25519Kex : IKexAlgorithm
     /// <summary>
     /// Writes a string (length-prefixed bytes) to the buffer.
     /// </summary>
-    private static int WriteString(Span<byte> buffer, ReadOnlySpan<byte> value)
+    internal static int WriteString(Span<byte> buffer, ReadOnlySpan<byte> value)
     {
         System.Buffers.Binary.BinaryPrimitives.WriteUInt32BigEndian(buffer, (uint)value.Length);
         value.CopyTo(buffer[4..]);
@@ -135,7 +130,7 @@ public sealed class Curve25519Kex : IKexAlgorithm
     /// <summary>
     /// Writes an mpint to the buffer.
     /// </summary>
-    private static int WriteMpint(Span<byte> buffer, ReadOnlySpan<byte> value)
+    internal static int WriteMpint(Span<byte> buffer, ReadOnlySpan<byte> value)
     {
         // Strip leading zeros
         var start = 0;
@@ -170,7 +165,7 @@ public sealed class Curve25519Kex : IKexAlgorithm
     /// <summary>
     /// Gets the wire size of an mpint.
     /// </summary>
-    private static int GetMpintSize(ReadOnlySpan<byte> value)
+    internal static int GetMpintSize(ReadOnlySpan<byte> value)
     {
         var start = 0;
         while (start < value.Length && value[start] == 0)

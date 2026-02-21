@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using d0x2a.EmbeddedSsh.Protocol;
+using d0x2a.EmbeddedSsh.Transport.Algorithms;
 
 namespace d0x2a.EmbeddedSsh.Transport;
 
@@ -37,24 +38,26 @@ public static class KeyDerivation
     /// Derives a key using the SSH key derivation function.
     /// K_n = HASH(K || H || X || session_id || K_1 || ... || K_{n-1})
     /// </summary>
-    /// <param name="sharedSecret">Shared secret K as mpint.</param>
+    /// <param name="sharedSecret">Shared secret K.</param>
     /// <param name="exchangeHash">Exchange hash H.</param>
     /// <param name="keyId">Key identifier character (A-F).</param>
     /// <param name="sessionId">Session identifier (first exchange hash).</param>
     /// <param name="requiredLength">Required key length in bytes.</param>
+    /// <param name="encoding">How K is encoded in the hash (mpint or string).</param>
     /// <returns>Derived key material.</returns>
     public static byte[] DeriveKey(
         ReadOnlySpan<byte> sharedSecret,
         ReadOnlySpan<byte> exchangeHash,
         byte keyId,
         ReadOnlySpan<byte> sessionId,
-        int requiredLength)
+        int requiredLength,
+        SharedSecretEncoding encoding = SharedSecretEncoding.Mpint)
     {
         if (requiredLength <= 0)
             return [];
 
         var result = new byte[requiredLength];
-        DeriveKey(sharedSecret, exchangeHash, keyId, sessionId, result);
+        DeriveKey(sharedSecret, exchangeHash, keyId, sessionId, result, encoding);
         return result;
     }
 
@@ -66,7 +69,8 @@ public static class KeyDerivation
         ReadOnlySpan<byte> exchangeHash,
         byte keyId,
         ReadOnlySpan<byte> sessionId,
-        Span<byte> output)
+        Span<byte> output,
+        SharedSecretEncoding encoding = SharedSecretEncoding.Mpint)
     {
         if (output.Length == 0)
             return;
@@ -77,8 +81,8 @@ public static class KeyDerivation
 
         using (var sha256 = IncrementalHash.CreateHash(HashAlgorithmName.SHA256))
         {
-            // Write K as mpint
-            WriteMpintToHash(sha256, sharedSecret);
+            // Write K
+            WriteSharedSecretToHash(sha256, sharedSecret, encoding);
 
             // Write H
             sha256.AppendData(exchangeHash);
@@ -111,8 +115,8 @@ public static class KeyDerivation
         {
             using var sha256 = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
 
-            // Write K as mpint
-            WriteMpintToHash(sha256, sharedSecret);
+            // Write K
+            WriteSharedSecretToHash(sha256, sharedSecret, encoding);
 
             // Write H
             sha256.AppendData(exchangeHash);
@@ -131,6 +135,17 @@ public static class KeyDerivation
             kn[..toCopy].CopyTo(output.Slice(offset, toCopy));
             offset += toCopy;
         }
+    }
+
+    /// <summary>
+    /// Writes the shared secret K to the hash context using the specified encoding.
+    /// </summary>
+    private static void WriteSharedSecretToHash(IncrementalHash hash, ReadOnlySpan<byte> value, SharedSecretEncoding encoding)
+    {
+        if (encoding == SharedSecretEncoding.String)
+            WriteStringToHash(hash, value);
+        else
+            WriteMpintToHash(hash, value);
     }
 
     /// <summary>
@@ -172,6 +187,18 @@ public static class KeyDerivation
     }
 
     /// <summary>
+    /// Writes a string (4-byte length prefix + raw bytes) to the hash context.
+    /// Used for mlkem768x25519-sha256 where K is encoded as string, not mpint.
+    /// </summary>
+    private static void WriteStringToHash(IncrementalHash hash, ReadOnlySpan<byte> value)
+    {
+        Span<byte> lengthBytes = stackalloc byte[4];
+        System.Buffers.Binary.BinaryPrimitives.WriteUInt32BigEndian(lengthBytes, (uint)value.Length);
+        hash.AppendData(lengthBytes);
+        hash.AppendData(value);
+    }
+
+    /// <summary>
     /// Holds all derived keys for a direction (client-to-server or server-to-client).
     /// </summary>
     public readonly struct DirectionalKeys
@@ -197,6 +224,7 @@ public static class KeyDerivation
     /// <param name="ivSize">IV size in bytes.</param>
     /// <param name="keySize">Encryption key size in bytes.</param>
     /// <param name="integrityKeySize">Integrity key size in bytes.</param>
+    /// <param name="encoding">How K is encoded in the hash (mpint or string).</param>
     /// <returns>Tuple of (client-to-server keys, server-to-client keys).</returns>
     public static (DirectionalKeys ClientToServer, DirectionalKeys ServerToClient) DeriveAllKeys(
         ReadOnlySpan<byte> sharedSecret,
@@ -204,18 +232,19 @@ public static class KeyDerivation
         ReadOnlySpan<byte> sessionId,
         int ivSize,
         int keySize,
-        int integrityKeySize)
+        int integrityKeySize,
+        SharedSecretEncoding encoding = SharedSecretEncoding.Mpint)
     {
         var clientToServer = new DirectionalKeys(
-            DeriveKey(sharedSecret, exchangeHash, KeyId.IvClientToServer, sessionId, ivSize),
-            DeriveKey(sharedSecret, exchangeHash, KeyId.EncryptionKeyClientToServer, sessionId, keySize),
-            DeriveKey(sharedSecret, exchangeHash, KeyId.IntegrityKeyClientToServer, sessionId, integrityKeySize)
+            DeriveKey(sharedSecret, exchangeHash, KeyId.IvClientToServer, sessionId, ivSize, encoding),
+            DeriveKey(sharedSecret, exchangeHash, KeyId.EncryptionKeyClientToServer, sessionId, keySize, encoding),
+            DeriveKey(sharedSecret, exchangeHash, KeyId.IntegrityKeyClientToServer, sessionId, integrityKeySize, encoding)
         );
 
         var serverToClient = new DirectionalKeys(
-            DeriveKey(sharedSecret, exchangeHash, KeyId.IvServerToClient, sessionId, ivSize),
-            DeriveKey(sharedSecret, exchangeHash, KeyId.EncryptionKeyServerToClient, sessionId, keySize),
-            DeriveKey(sharedSecret, exchangeHash, KeyId.IntegrityKeyServerToClient, sessionId, integrityKeySize)
+            DeriveKey(sharedSecret, exchangeHash, KeyId.IvServerToClient, sessionId, ivSize, encoding),
+            DeriveKey(sharedSecret, exchangeHash, KeyId.EncryptionKeyServerToClient, sessionId, keySize, encoding),
+            DeriveKey(sharedSecret, exchangeHash, KeyId.IntegrityKeyServerToClient, sessionId, integrityKeySize, encoding)
         );
 
         return (clientToServer, serverToClient);

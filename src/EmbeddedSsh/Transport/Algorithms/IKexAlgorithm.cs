@@ -1,6 +1,25 @@
 namespace d0x2a.EmbeddedSsh.Transport.Algorithms;
 
 /// <summary>
+/// Result of a server-side key exchange operation.
+/// </summary>
+/// <param name="ServerEphemeral">Server's ephemeral data to send to the client.</param>
+/// <param name="SharedSecret">Computed shared secret K.</param>
+public readonly record struct KexExchangeResult(byte[] ServerEphemeral, byte[] SharedSecret);
+
+/// <summary>
+/// How the shared secret K is encoded in exchange hash and key derivation.
+/// </summary>
+public enum SharedSecretEncoding
+{
+    /// <summary>K encoded as mpint (curve25519-sha256).</summary>
+    Mpint,
+
+    /// <summary>K encoded as string (mlkem768x25519-sha256).</summary>
+    String
+}
+
+/// <summary>
 /// Interface for SSH key exchange algorithms.
 /// </summary>
 public interface IKexAlgorithm
@@ -11,18 +30,16 @@ public interface IKexAlgorithm
     string Name { get; }
 
     /// <summary>
-    /// Generates an ephemeral key pair for this key exchange.
+    /// Gets how the shared secret K should be encoded.
     /// </summary>
-    /// <returns>Tuple of (private key, public key).</returns>
-    (byte[] PrivateKey, byte[] PublicKey) GenerateKeyPair();
+    SharedSecretEncoding SharedSecretEncoding { get; }
 
     /// <summary>
-    /// Computes the shared secret from our private key and peer's public key.
+    /// Performs the server side of the key exchange given the client's ephemeral data.
     /// </summary>
-    /// <param name="privateKey">Our ephemeral private key.</param>
-    /// <param name="peerPublicKey">Peer's ephemeral public key.</param>
-    /// <returns>Shared secret as mpint-compatible bytes.</returns>
-    byte[] ComputeSharedSecret(ReadOnlySpan<byte> privateKey, ReadOnlySpan<byte> peerPublicKey);
+    /// <param name="clientEphemeral">Client's ephemeral public key or encapsulation data.</param>
+    /// <returns>Server's ephemeral data and the shared secret.</returns>
+    KexExchangeResult ServerExchange(ReadOnlySpan<byte> clientEphemeral);
 
     /// <summary>
     /// Computes the exchange hash H using SHA-256.
@@ -34,7 +51,7 @@ public interface IKexAlgorithm
     /// <param name="hostKeyBlob">Server's host key blob.</param>
     /// <param name="clientEphemeral">Client's ephemeral public key.</param>
     /// <param name="serverEphemeral">Server's ephemeral public key.</param>
-    /// <param name="sharedSecret">Computed shared secret (mpint format).</param>
+    /// <param name="sharedSecret">Computed shared secret.</param>
     /// <returns>Exchange hash H (32 bytes for SHA-256).</returns>
     byte[] ComputeExchangeHash(
         ReadOnlySpan<byte> clientVersion,

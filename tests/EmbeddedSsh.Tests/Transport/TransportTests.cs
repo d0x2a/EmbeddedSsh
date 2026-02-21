@@ -172,30 +172,40 @@ public class TransportTests
     #region Curve25519 Key Exchange Tests
 
     [Fact]
-    public void Curve25519Kex_GenerateKeyPair_ProducesValidKeys()
+    public void Curve25519Kex_ServerExchange_ProducesValidResult()
     {
         var kex = new Curve25519Kex();
-        var (privateKey, publicKey) = kex.GenerateKeyPair();
 
-        Assert.Equal(32, privateKey.Length);
-        Assert.Equal(32, publicKey.Length);
+        // Generate a client keypair using X25519 directly
+        var (clientPrivate, clientPublic) = X25519.GenerateKeyPair();
 
-        // Public key should be derivable from private key
-        var derivedPublic = X25519.GetPublicKey(privateKey);
-        Assert.Equal(publicKey, derivedPublic);
+        var result = kex.ServerExchange(clientPublic);
+
+        Assert.Equal(32, result.ServerEphemeral.Length);
+        Assert.Equal(32, result.SharedSecret.Length);
     }
 
     [Fact]
-    public void Curve25519Kex_ComputeSharedSecret_MatchesBothSides()
+    public void Curve25519Kex_ServerExchange_SharedSecretMatchesClientSide()
     {
         var kex = new Curve25519Kex();
-        var (alicePrivate, alicePublic) = kex.GenerateKeyPair();
-        var (bobPrivate, bobPublic) = kex.GenerateKeyPair();
 
-        var aliceShared = kex.ComputeSharedSecret(alicePrivate, bobPublic);
-        var bobShared = kex.ComputeSharedSecret(bobPrivate, alicePublic);
+        // Generate a client keypair
+        var (clientPrivate, clientPublic) = X25519.GenerateKeyPair();
 
-        Assert.Equal(aliceShared, bobShared);
+        var result = kex.ServerExchange(clientPublic);
+
+        // Client computes shared secret from server's ephemeral
+        var clientShared = X25519.ComputeSharedSecret(clientPrivate, result.ServerEphemeral);
+
+        Assert.Equal(clientShared, result.SharedSecret);
+    }
+
+    [Fact]
+    public void Curve25519Kex_SharedSecretEncoding_IsMpint()
+    {
+        var kex = new Curve25519Kex();
+        Assert.Equal(SharedSecretEncoding.Mpint, kex.SharedSecretEncoding);
     }
 
     [Fact]

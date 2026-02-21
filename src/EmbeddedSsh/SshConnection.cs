@@ -150,15 +150,20 @@ public sealed class SshConnection : IAsyncDisposable
         // Select algorithms
         var (kexAlg, hostKeyAlg, cipherC2S, cipherS2C) = NegotiateAlgorithms(clientKexInit);
 
-        if (kexAlg != "curve25519-sha256" && kexAlg != "curve25519-sha256@libssh.org")
-            throw new SshProtocolException(DisconnectReason.KeyExchangeFailed, $"Unsupported KEX: {kexAlg}");
-
         if (hostKeyAlg != "ssh-ed25519")
             throw new SshProtocolException(DisconnectReason.KeyExchangeFailed, $"Unsupported host key: {hostKeyAlg}");
 
         var supportedCiphers = new[] { "aes256-gcm@openssh.com", "chacha20-poly1305@openssh.com" };
         if (!supportedCiphers.Contains(cipherC2S) || !supportedCiphers.Contains(cipherS2C))
             throw new SshProtocolException(DisconnectReason.KeyExchangeFailed, "Unsupported cipher");
+
+        // Instantiate the negotiated key exchange algorithm
+        IKexAlgorithm kex = kexAlg switch
+        {
+            "mlkem768x25519-sha256" => new MlKem768x25519Kex(),
+            "curve25519-sha256" or "curve25519-sha256@libssh.org" => new Curve25519Kex(),
+            _ => throw new SshProtocolException(DisconnectReason.KeyExchangeFailed, $"Unsupported KEX: {kexAlg}")
+        };
 
         // Send our KEXINIT
         var serverKexInit = CreateKexInit();
@@ -171,7 +176,7 @@ public sealed class SshConnection : IAsyncDisposable
         var hostKey = _options.GetHostKey(hostKeyAlg)
             ?? throw new SshProtocolException(DisconnectReason.KeyExchangeFailed, "No host key available");
 
-        // Wait for ECDH init
+        // Wait for KEX init (message 30 — used by both ECDH and hybrid KEX)
         var kexEcdhMsg = await _transport.ReceiveMessageAsync(ct).ConfigureAwait(false);
         if (kexEcdhMsg is not KexEcdhInitMessage kexEcdhInit)
         {
@@ -180,9 +185,7 @@ public sealed class SshConnection : IAsyncDisposable
         }
 
         // Perform key exchange
-        var kex = new Curve25519Kex();
-        var (serverPrivate, serverPublic) = kex.GenerateKeyPair();
-        var sharedSecret = kex.ComputeSharedSecret(serverPrivate, kexEcdhInit.ClientPublicKey.Span);
+        var result = kex.ServerExchange(kexEcdhInit.ClientPublicKey.Span);
 
         // Compute exchange hash
         var hostKeyBlob = hostKey.GetPublicKeyBlob();
@@ -193,8 +196,8 @@ public sealed class SshConnection : IAsyncDisposable
             _serverKexInit,
             hostKeyBlob,
             kexEcdhInit.ClientPublicKey.Span,
-            serverPublic,
-            sharedSecret);
+            result.ServerEphemeral,
+            result.SharedSecret);
 
         // First exchange hash becomes session ID
         _sessionId = exchangeHash;
@@ -202,11 +205,11 @@ public sealed class SshConnection : IAsyncDisposable
         // Sign exchange hash
         var signature = hostKey.Sign(exchangeHash);
 
-        // Send ECDH reply
+        // Send KEX reply (message 31 — used by both ECDH and hybrid KEX)
         var kexReply = new KexEcdhReplyMessage
         {
             HostKeyBlob = hostKeyBlob,
-            ServerPublicKey = serverPublic,
+            ServerPublicKey = result.ServerEphemeral,
             Signature = signature
         };
         await _transport.SendMessageAsync(kexReply, ct).ConfigureAwait(false);
@@ -223,16 +226,18 @@ public sealed class SshConnection : IAsyncDisposable
         }
 
         // Derive keys based on negotiated cipher
+        var secretEncoding = kex.SharedSecretEncoding;
         ISshCipher sendCipher;
         ISshCipher receiveCipher;
 
         if (cipherS2C == "aes256-gcm@openssh.com")
         {
             var (c2sKeys, s2cKeys) = KeyDerivation.DeriveAllKeys(
-                sharedSecret, exchangeHash, _sessionId,
+                result.SharedSecret, exchangeHash, _sessionId,
                 ivSize: 12,   // AES-GCM uses 12-byte IV
                 keySize: 32,  // 256-bit key
-                integrityKeySize: 0);  // AEAD, no separate MAC key
+                integrityKeySize: 0,  // AEAD, no separate MAC key
+                encoding: secretEncoding);
 
             var send = new AesGcmCipher();
             send.Initialize(s2cKeys.EncryptionKey, s2cKeys.Iv);
@@ -245,10 +250,11 @@ public sealed class SshConnection : IAsyncDisposable
         else // chacha20-poly1305@openssh.com
         {
             var (c2sKeys, s2cKeys) = KeyDerivation.DeriveAllKeys(
-                sharedSecret, exchangeHash, _sessionId,
+                result.SharedSecret, exchangeHash, _sessionId,
                 ivSize: 0,    // ChaCha20-Poly1305 doesn't use IV
                 keySize: 64,  // 64 bytes (two 32-byte keys)
-                integrityKeySize: 0);  // AEAD, no separate MAC key
+                integrityKeySize: 0,  // AEAD, no separate MAC key
+                encoding: secretEncoding);
 
             var send = new ChaCha20Poly1305Cipher();
             send.Initialize(s2cKeys.EncryptionKey, ReadOnlySpan<byte>.Empty);
@@ -370,7 +376,9 @@ public sealed class SshConnection : IAsyncDisposable
     private static (string kex, string hostKey, string cipherC2S, string cipherS2C) NegotiateAlgorithms(KexInitMessage clientKexInit)
     {
         // Our supported algorithms (in preference order)
-        var serverKex = new[] { "curve25519-sha256", "curve25519-sha256@libssh.org" };
+        var serverKex = MLKem.IsSupported
+            ? new[] { "mlkem768x25519-sha256", "curve25519-sha256", "curve25519-sha256@libssh.org" }
+            : new[] { "curve25519-sha256", "curve25519-sha256@libssh.org" };
         var serverHostKey = new[] { "ssh-ed25519" };
         var serverCipher = new[] { "aes256-gcm@openssh.com", "chacha20-poly1305@openssh.com" };
 
@@ -401,10 +409,14 @@ public sealed class SshConnection : IAsyncDisposable
 
     private static KexInitMessage CreateKexInit()
     {
+        var kexAlgorithms = MLKem.IsSupported
+            ? new List<string> { "mlkem768x25519-sha256", "curve25519-sha256", "curve25519-sha256@libssh.org", "ext-info-s" }
+            : new List<string> { "curve25519-sha256", "curve25519-sha256@libssh.org", "ext-info-s" };
+
         return new KexInitMessage
         {
             Cookie = RandomNumberGenerator.GetBytes(16),
-            KexAlgorithms = ["curve25519-sha256", "curve25519-sha256@libssh.org", "ext-info-s"],
+            KexAlgorithms = kexAlgorithms,
             HostKeyAlgorithms = ["ssh-ed25519"],
             EncryptionAlgorithmsClientToServer = ["aes256-gcm@openssh.com", "chacha20-poly1305@openssh.com"],
             EncryptionAlgorithmsServerToClient = ["aes256-gcm@openssh.com", "chacha20-poly1305@openssh.com"],
